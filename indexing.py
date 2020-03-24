@@ -18,7 +18,7 @@ def createSearchableData(root):
  
     filepaths = [os.path.join(root,i) for i in os.listdir(root)]
     for path in filepaths:
-        fp = open(path,'r')
+        fp = open(path,'r', encoding="utf8", errors='ignore')
         print(path)
         text = fp.read()
 #         print(text)
@@ -26,5 +26,5 @@ def createSearchableData(root):
         fp.close()
     writer.commit()
 
-root = "corpus"
+root = "HillaryEmails"
 createSearchableData(root)
