@@ -31,6 +31,11 @@ place the *DATASET_DIRECTORY* under ```Infor_retrieval/```
 
 ```python indexing.py DATASET_DIRECTORY```
 
-to search the first *NUMBER_OF_RESULTS* documents containing *QUERY_TERM*:
 
-```python search.py QUERY_TERM NUMBER_OF_RESULTS```
+to search the first *NUMBER_OF_RESULTS* documents containing *QUERY_TERM* in *title*, *author* or *content*:
+
+```python search.py QUERY_TERM title NUMBER_OF_RESULTS```
+
+```python search.py QUERY_TERM author NUMBER_OF_RESULTS```
+
+```python search.py QUERY_TERM content NUMBER_OF_RESULTS```
