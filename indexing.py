@@ -1,14 +1,23 @@
-import os
+import os, sys
 from whoosh.index import create_in
-from whoosh.fields import Schema, TEXT, ID
-import sys
- 
-def createSearchableData(root):   
+from whoosh.fields import Schema, TEXT, ID, DATETIME
+from whoosh.analysis import StemmingAnalyzer
+
+def createSearchableData(DIR):   
     '''
-    Schema definition: title(name of file), path(as ID), content(indexed
-    but not stored),textdata (stored text content)
+    Schema definition: 
+        title(name of file), 
+        path(as ID), 
+        content(indexed
+    but not stored),
+        textdata (stored text content)
+        Date?
+        Subject?
     '''
-    schema = Schema(title=TEXT(stored=True),path=ID(stored=True), content=TEXT,textdata=TEXT(stored=True))
+    stem_ana = StemmingAnalyzer()
+    schema = Schema(title=TEXT(stored = True), path = ID(stored=True), content = TEXT(analyzer = stem_ana), textdata = TEXT(stored = True), date = DATETIME(sortable = True))
+    
+    # directory for the index
     if not os.path.exists("indexdir"):
         os.mkdir("indexdir")
  
@@ -16,15 +25,15 @@ def createSearchableData(root):
     ix = create_in("indexdir",schema)
     writer = ix.writer()
  
-    filepaths = [os.path.join(root,i) for i in os.listdir(root)]
+    filepaths = [os.path.join(DIR,i) for i in os.listdir(DIR)]
     for path in filepaths:
-        fp = open(path,'r', encoding="utf8", errors='ignore')
+        fp = open(path,'r', encoding = "utf8", errors = 'ignore')
         print(path)
         text = fp.read()
-#         print(text)
-        writer.add_document(title=path.split('/')[1], path=path, content=text,textdata=text)
+        writer.add_document(title = path.split('/')[1], path = path, content = text, textdata = text)   
         fp.close()
     writer.commit()
 
-root = "HillaryEmails"
-createSearchableData(root)
+# read the dataset
+dataset = sys.argv[1]
+createSearchableData(dataset)

@@ -10,9 +10,9 @@ query_str = sys.argv[1]
 # Top 'n' documents as result
 topN = int(sys.argv[2])
  
-with ix.searcher(weighting=scoring.Frequency) as searcher:
+with ix.searcher(weighting = scoring.Frequency) as searcher:
 	query = QueryParser("content", ix.schema).parse(query_str)
-	results = searcher.search(query,limit=topN)
+	results = searcher.search(query,limit = topN)
 
 	for i in range(topN):
 		print(results[i]['title'], str(results[i].score), results[i]['textdata'])
