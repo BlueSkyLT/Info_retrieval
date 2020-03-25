@@ -2,6 +2,7 @@ import os, sys
 from whoosh.index import create_in
 from whoosh.fields import Schema, TEXT, ID, DATETIME
 from whoosh.analysis import LanguageAnalyzer
+from get_content import *
 
 def createSearchableData(DIR):   
     '''
@@ -27,16 +28,10 @@ def createSearchableData(DIR):
     filepaths = [os.path.join(DIR,i) for i in os.listdir(DIR)]
     
     for path in filepaths:
-        fp = open(path,'r', encoding = "utf8", errors = 'ignore')
         print(path)
-        text = fp.read()
-
         # get title, author and content from text
-        # title, author, content = get_content(text)
-        # writer.add_document(title = title, author = author, path = path, content = text, textdata = text)
-
-        writer.add_document(title = path.split('/')[1], path = path, content = text, textdata = text) 
-        fp.close()
+        title, author, text = get_content(path)
+        writer.add_document(title = title, author = author, path = path, content = text, textdata = text)
     writer.commit()
 
 # read the da
