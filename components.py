@@ -20,9 +20,9 @@ def tokenization(content: str, doc_id: str):
     """
     Args:
         content (str): Document text
-        doc_id(str): Document id
+        doc_id(str): Document Id
     Returns:
-        tokens (list): Token-document id pairs
+        tokens (list): Token-docId pairs
     """
     tokens = list()
     lines = content.splitlines()
@@ -36,9 +36,9 @@ def linguistic(tokens: list):
     """
     Remove punctuation symbols, lowercasing and stemming.
     Args:
-        tokens (list): Original token-document id pairs
+        tokens (list): Original token-docId pairs
     Returns:
-        tokens_modified (list): Modified token-document id pairs
+        tokens_modified (list): Modified token-docId pairs
     """
     tokens_modified = list()
     stemmer = SnowballStemmer("english")
@@ -64,8 +64,7 @@ def sorting(tokens: list):
 
 class Posting(object):
     """
-    Perform sorting of the token list, first by tokens (alphabetical order),
-    and then by document ids (alphabetical order).
+    Create inverted index from sorted list of of token-docId pairs.
     """
     def __init__(self):
         self.posting = dict()
@@ -78,5 +77,18 @@ class Posting(object):
         else:
             self.posting[token[0]] = [1, [token[1]]]
 
-    # def sort(self):
-    #     self.posting = sorted(self.posting, key=lambda x: -x[1][0])
+
+def merge(posting_lists: list):
+    """
+    Merge postings lists.
+    Args:
+        posting_lists (list): a list that contains postings lists to be merged.
+    Returns:
+        posting_merged (list): merged postings list.
+    """
+    posting_lists.sort(key=lambda x: len(x))  # in order to start merging from the shortest posting list
+    posting_set = set(posting_lists[0])
+    for i in range(1, len(posting_lists)):
+        posting_set &= set(posting_lists[i])
+    posting_merged = list(posting_set)
+    return posting_merged

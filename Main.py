@@ -20,7 +20,7 @@ def main(args):
     posting = Posting()
     for token in all_token_list:
         posting.add(token)
-    # posting.sort()
+    merge([[1, 2, 5, 7], [2, 4, 5], [2, 5]])
     return
 
 
