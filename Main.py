@@ -1,4 +1,5 @@
 import argparse
+import time
 from components import *
 
 
@@ -18,8 +19,11 @@ def main(args):
         output = dataset.query(query)
         time_used = time.time() - start_time
         if output:
+            for i, doc in enumerate(output):
+                print('---------the {}-th result----------'.format(i))
+                doc.print()
+            print('------------------------------------')
             print('Num of Documents: {}\t Time: {:.4f}s'.format(len(output), time_used))
-            print(output)
         else:
             print('Your search "{}" did not match any documents.'.format(query))
 

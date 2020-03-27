@@ -121,18 +121,18 @@ class Dataset(object):
 
     def query(self, query: str):
         """
-        Perform the same tokenization and lexical transformation on query.
+        Perform the same tokenization and lexical transformation on query, and get the search results.
         Args:
             query (str): input query
         Returns:
-            (dict): a dict with docId as key and its corresponding meta data as value.
+            Novels (list): a list that contains Novel Class objects.
         """
         tokens = query.split()
         tokens = [self.stemmer.stem(token.translate(self.translator).lower()) for token in tokens]
         posting_lists = [self.posting[i] if i in self.posting else [] for i in tokens]
         result = self.merge(posting_lists)
-        metadata = [self.metadata[doc_id] for doc_id in result]
-        return dict(zip(result, metadata))
+        novels = [Novel(doc_id, self.metadata[doc_id]) for doc_id in result]
+        return novels
 
     @staticmethod
     def merge(posting_lists: list):
@@ -228,6 +228,24 @@ class Dataset(object):
             self.posting[token] = [doc_id]
 
 
+class Novel(object):
+    """
+    Args:
+        docid (str): docId of the novel
+        metadata (dict): Title, Author, Release Date, Language, Character set encoding
+    """
+    def __init__(self, docid, metadata):
+        self.docid = docid
+        self.title = metadata.get('Title')
+        self.author = metadata.get('Author')
+        self.release_date = metadata.get('Release Date')
+        self.language = metadata.get('Language')
+        self.encoding = metadata.get('Character set encoding')
 
-
-
+    def print(self):
+        print('DocId: {}'.format(self.docid))
+        print('Title: {}'.format(self.title))
+        print('Author: {}'.format(self.author))
+        print('Release Date: {}'.format(self.release_date))
+        print('Language: {}'.format(self.language))
+        print('Character set encoding: {}'.format(self.encoding))
