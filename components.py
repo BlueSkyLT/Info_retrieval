@@ -1,85 +1,10 @@
 import os
 import string
 import time
-import pickle
+import json
 from nltk.stem.snowball import SnowballStemmer
 from itertools import chain
 from tqdm import tqdm
-
-
-# def get_files(dirname: str):
-#     """
-#     Args:
-#         dirname (str): path to directory
-#     Returns:
-#         file_list (list): full paths to files in the directory
-#     """
-#     file_list = list()
-#     for filename in os.listdir(dirname):
-#         file_list.append(os.path.join(dirname, filename))
-#     return file_list
-#
-#
-# def tokenization(content: str, doc_id: str):
-#     """
-#     Args:
-#         content (str): Document text
-#         doc_id(str): Document Id
-#     Returns:
-#         tokens (list): Token-docId pairs
-#     """
-#     tokens = list()
-#     lines = content.splitlines()
-#     for line in lines:
-#         token = line.split()  # default split by whitespace
-#         tokens.extend(zip(token, len(token) * [doc_id]))
-#     return tokens
-#
-#
-# def linguistic(tokens: list):
-#     """
-#     Remove punctuation symbols, lowercasing and stemming.
-#     Args:
-#         tokens (list): Original token-docId pairs
-#     Returns:
-#         tokens_modified (list): Modified token-docId pairs
-#     """
-#     tokens_modified = list()
-#     stemmer = SnowballStemmer("english")
-#     translator = str.maketrans('', '', string.punctuation)
-#     for pairs in tokens:
-#         token = pairs[0].translate(translator).lower()  # remove punctuation symbols, lowercasing
-#         if token:  # filter out those empty token
-#             tokens_modified.append((stemmer.stem(token), pairs[1]))  # stemming
-#     return tokens_modified
-#
-#
-# def sorting(tokens: list):
-#     """
-#     Perform sorting of the token list, first by tokens (alphabetical order),
-#     and then by document ids (alphabetical order).
-#     Args:
-#         tokens (list): token list to be sorted
-#     Returns:
-#         tokens_sorted (list): sorted token list
-#     """
-#     tokens.sort(key=lambda x: (x[0], x[1]))
-#
-#
-# class Posting(object):
-#     """
-#     Create inverted index from sorted list of of token-docId pairs.
-#     """
-#     def __init__(self):
-#         self.posting = dict()
-#
-#     def add(self, token):
-#         if token[0] in self.posting:
-#             if token[1] not in self.posting[token[0]][1]:  # collapse identical tokens together
-#                 self.posting[token[0]][1].append(token[1])
-#                 self.posting[token[0]][0] += 1
-#         else:
-#             self.posting[token[0]] = [1, [token[1]]]
 
 
 class Dataset(object):
@@ -97,10 +22,10 @@ class Dataset(object):
         self.create_index()
 
     def create_index(self):
-        cache_file = os.path.join(self.dirname, 'index_cache.pkl')
+        cache_file = os.path.join(self.dirname, 'index_cache.json')
         if os.path.exists(cache_file):
-            with open(cache_file, 'rb') as f:
-                self.metadata, self.posting = pickle.load(f)
+            with open(cache_file, 'r') as f:
+                self.metadata, self.posting = json.load(f)
             print('Index of {} corpus loaded from {}'.format(os.path.dirname(self.dirname), cache_file))
             return
         print('Creating index for {} corpus...'.format(os.path.dirname(self.dirname)))
@@ -116,8 +41,24 @@ class Dataset(object):
         for token in all_token_list:
             self.add(token)
         print('Done in {:.2f}s.'.format(time.time() - start_time))
-        with open(cache_file, 'wb') as f:
-            pickle.dump((self.metadata, self.posting), f, pickle.HIGHEST_PROTOCOL)
+        # with open(cache_file, 'wb') as f:
+        #     pickle.dump([self.metadata, self.posting], f)
+        index_file = os.path.join(self.dirname, 'index.json')
+        meta_file = os.path.join(self.dirname, 'meta.json')
+        print("Saving index to {}".format(index_file))
+        with open(index_file, "w") as f:
+            f.write(json.dumps(self.posting))
+            f.flush()
+        print("Saving metadata to {}".format(meta_file))
+        meta_file = os.path.join(self.dirname, 'meta.json')
+        with open(meta_file, "w") as f:
+            f.write(json.dumps(self.metadata))
+            f.flush()
+
+        print("Saving index and metadata to {}".format(cache_file))
+        with open(cache_file, "w") as f:
+            f.write(json.dumps([self.metadata, self.posting]))
+            f.flush()
 
     def query(self, query: str):
         """
