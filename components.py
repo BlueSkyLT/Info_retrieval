@@ -4,6 +4,7 @@ import time
 import pickle
 from nltk.stem.snowball import SnowballStemmer
 from itertools import chain
+from tqdm import tqdm
 
 
 # def get_files(dirname: str):
@@ -92,21 +93,23 @@ class Dataset(object):
         self.stemmer = SnowballStemmer("english")
         self.translator = str.maketrans('', '', string.punctuation)
         self.posting = dict()
+        self.metadata = dict(dict())
         self.create_index()
 
     def create_index(self):
-        cache_file = self.dirname + 'index_cache.pkl'
+        cache_file = os.path.join(self.dirname, 'index_cache.pkl')
         if os.path.exists(cache_file):
             with open(cache_file, 'rb') as f:
-                self.posting = pickle.load(f)
+                self.metadata, self.posting = pickle.load(f)
             print('Index of {} corpus loaded from {}'.format(os.path.dirname(self.dirname), cache_file))
             return
         print('Creating index for {} corpus...'.format(os.path.dirname(self.dirname)))
         start_time = time.time()
         files = self.get_files(self.dirname)
         file_token_list = list(list())  # containing token list for each file
-        for file in files:
+        for file in tqdm(files[:10]):
             with open(file) as f:
+                # print(file)
                 file_token_list.append(self.linguistic(self.tokenization(f.read(), file)))
         all_token_list = list(chain.from_iterable(file_token_list))  # containing tokens from all documents
         self.sorting(all_token_list)  # in-place sorting, save memory
@@ -114,7 +117,7 @@ class Dataset(object):
             self.add(token)
         print('Done in {:.2f}s.'.format(time.time() - start_time))
         with open(cache_file, 'wb') as f:
-            pickle.dump(self.posting, f, pickle.HIGHEST_PROTOCOL)
+            pickle.dump((self.metadata, self.posting), f, pickle.HIGHEST_PROTOCOL)
 
     def query(self, query: str):
         """
@@ -122,14 +125,17 @@ class Dataset(object):
         Args:
             query (str): input query
         Returns:
-            tokens (list): tokens ready for searching the inverted index dictionary.
+            (dict): a dict with docId as key and its corresponding meta data as value.
         """
         tokens = query.split()
         tokens = [self.stemmer.stem(token.translate(self.translator).lower()) for token in tokens]
         posting_lists = [self.posting[i] if i in self.posting else [] for i in tokens]
-        return self.merge(posting_lists)
+        result = self.merge(posting_lists)
+        metadata = [self.metadata[doc_id] for doc_id in result]
+        return dict(zip(result, metadata))
 
-    def merge(self, posting_lists: list):
+    @staticmethod
+    def merge(posting_lists: list):
         """
         Merge postings lists.
         Args:
@@ -157,18 +163,24 @@ class Dataset(object):
             file_list.append(os.path.join(dirname, filename))
         return file_list
 
-    @staticmethod
-    def tokenization(content: str, doc_id: str):
+    def tokenization(self, content: str, doc_id: str):
         """
+        Tokenization and collect metadata
         Args:
             content (str): Document text
             doc_id(str): Document Id
         Returns:
             tokens (list): Token-docId pairs
         """
+        self.metadata[doc_id] = dict()
         tokens = list()
         lines = content.splitlines()
-        for line in lines:
+        keys = ['Title', 'Author', 'Release Date', 'Language', 'Character set encoding']
+        for i, line in enumerate(lines):
+            if i < 30:
+                for j in range(len(keys)):
+                    if keys[j] in line:
+                        self.metadata[doc_id][keys[j]] = line.strip().replace(keys[j]+': ', '')
             token = line.split()  # default split by whitespace
             tokens.extend(zip(token, len(token) * [doc_id]))
         return tokens

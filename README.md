@@ -19,7 +19,9 @@ Python 3.7
 
 **packages**
 
-Whoosh 2.7.4
+- Whoosh 2.7.4
+- nltk
+- tqdm
 
 # Dataset
 
