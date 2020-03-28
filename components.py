@@ -35,28 +35,18 @@ class Dataset(object):
         file_token_list = list(list())  # containing token list for each file
         for file in tqdm(files[:10]):
             with open(file) as f:
-                # print(file)
+                file = os.path.splitext(os.path.basename(file))[0]
                 file_token_list.append(self.linguistic(self.tokenization(f.read(), file)))
-        pdb.set_trace()
+        # pdb.set_trace()
         all_token_list = list(chain.from_iterable(file_token_list))  # containing tokens from all documents
+        print('Start sorting the tokens from all documents.')
+        sort_start = time.time()
         self.sorting(all_token_list)  # in-place sorting, save memory
+        print('Sorting finished in {:.2f} s.'.format(time.time()-sort_start))
         for token in all_token_list:
             self.add(token)
-        print('Done in {:.2f}s.'.format(time.time() - start_time))
-        # with open(cache_file, 'wb') as f:
-        #     pickle.dump([self.metadata, self.posting], f)
-        index_file = os.path.join(self.dirname, 'index.json')
-        meta_file = os.path.join(self.dirname, 'meta.json')
-        print("Saving index to {}".format(index_file))
-        with open(index_file, "w") as f:
-            f.write(json.dumps(self.posting))
-            f.flush()
-        print("Saving metadata to {}".format(meta_file))
-        meta_file = os.path.join(self.dirname, 'meta.json')
-        with open(meta_file, "w") as f:
-            f.write(json.dumps(self.metadata))
-            f.flush()
-
+        total_time = time.time() - start_time
+        print('Index created in {:d} min {:.2f} s.'.format(int(total_time / 60), total_time % 60))
         print("Saving index and metadata to {}".format(cache_file))
         with open(cache_file, "w") as f:
             f.write(json.dumps([self.metadata, self.posting]))
@@ -72,9 +62,9 @@ class Dataset(object):
         """
         tokens = query.split()
         tokens = [self.stemmer.stem(token.translate(self.translator).lower()) for token in tokens]
-        posting_lists = [self.posting[i] if i in self.posting else [] for i in tokens]
+        posting_lists = [self.posting[token] if token in self.posting else [] for token in tokens]
         result = self.merge(posting_lists)
-        novels = [Novel(doc_id, self.metadata[doc_id]) for doc_id in result]
+        novels = [Novel(os.path.join(self.dirname, doc_id+'.txt'), self.metadata[doc_id]) for doc_id in result]
         return novels
 
     @staticmethod
@@ -142,6 +132,7 @@ class Dataset(object):
             token = pairs[0].translate(self.translator).lower()  # remove punctuation symbols, lowercasing
             if token:  # filter out those empty token
                 tokens_modified.append((self.stemmer.stem(token), pairs[1]))  # stemming
+        tokens_modified = list(set(tokens_modified))  # delete those repeat pairs
         return tokens_modified
 
     @staticmethod
@@ -164,9 +155,9 @@ class Dataset(object):
         """
         token = token_docid[0]
         doc_id = token_docid[1]
+        # collapse identical tokens together
         if token in self.posting:
-            if doc_id not in self.posting[token]:  # collapse identical tokens together
-                self.posting[token].append(doc_id)
+            self.posting[token].append(doc_id)
         else:
             self.posting[token] = [doc_id]
 
