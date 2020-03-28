@@ -4,8 +4,10 @@ from components import *
 
 parser = argparse.ArgumentParser(
     description='Information Retrieval System')
-parser.add_argument('-d', '--dataset', default='HillaryEmails/',
+parser.add_argument('-d', '--dataset', default='Novels/',
                     help='Directory to the dataset.')
+parser.add_argument('-m', '--merge', default='merge_py',
+                    help='Merge method. (merge_baseline, merge_linear or merge_linear_skip)')
 
 
 def main(args):
@@ -15,7 +17,7 @@ def main(args):
         if not query:
             continue
         start_time = time.time()
-        output = dataset.query(query)
+        output = dataset.query(query, args.method)
         time_used = time.time() - start_time
         if output:
             for i, doc in enumerate(output):
