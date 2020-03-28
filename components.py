@@ -33,7 +33,7 @@ class Dataset(object):
         start_time = time.time()
         files = self.get_files(self.dirname)
         file_token_list = list(list())  # containing token list for each file
-        for file in tqdm(files):
+        for file in tqdm(files[:10]):
             with open(file) as f:
                 # print(file)
                 file_token_list.append(self.linguistic(self.tokenization(f.read(), file)))
