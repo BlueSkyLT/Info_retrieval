@@ -5,7 +5,6 @@ import json
 from nltk.stem.snowball import SnowballStemmer
 from itertools import chain
 from tqdm import tqdm
-import pdb
 
 
 class Dataset(object):
@@ -33,11 +32,10 @@ class Dataset(object):
         start_time = time.time()
         files = self.get_files(self.dirname)
         file_token_list = list(list())  # containing token list for each file
-        for file in tqdm(files[:10]):
+        for file in tqdm(files):
             with open(file) as f:
                 file = os.path.splitext(os.path.basename(file))[0]
                 file_token_list.append(self.linguistic(self.tokenization(f.read(), file)))
-        # pdb.set_trace()
         all_token_list = list(chain.from_iterable(file_token_list))  # containing tokens from all documents
         print('Start sorting the tokens from all documents.')
         sort_start = time.time()
@@ -46,7 +44,7 @@ class Dataset(object):
         for token in all_token_list:
             self.add(token)
         total_time = time.time() - start_time
-        print('Index created in {:d} min {:.2f} s.'.format(int(total_time / 60), total_time % 60))
+        print('Index created in {:d} min {:d} s.'.format(int(total_time / 60), int(total_time % 60)))
         print("Saving index and metadata to {}".format(cache_file))
         with open(cache_file, "w") as f:
             f.write(json.dumps([self.metadata, self.posting]))
@@ -162,21 +160,21 @@ class Dataset(object):
         """
         posting_merged = list()
         name = locals()
-        num_stride = 5
 
         posting_list_init = posting_lists[0]
         for i in range(1, len(posting_lists)):
-            posting_list_init = self.skip_pointers(posting_list_init, posting_lists[i], num_stride)
+            posting_list_init = self.skip_pointers(posting_list_init, posting_lists[i])
         posting_merged = posting_list_init
 
         return posting_merged
 
     @staticmethod
-    def skip_pointers(posting_list1: list, posting_list2: list, stride):
+    def skip_pointers(posting_list1: list, posting_list2: list):
         posting_merged = list()
         list1_len = len(posting_list1)
         list1_pointer = 0
 
+        stride = int(pow(len(posting_list1), 1/2))
         list1_skip_len = int(len(posting_list1) / stride)
         list1_skip_list = [i*stride for i in range(list1_skip_len)]
         list1_skip_list.append(len(posting_list1)-1)
@@ -185,6 +183,7 @@ class Dataset(object):
         list2_len = len(posting_list2)
         list2_pointer = 0
 
+        stride = int(pow(len(posting_list2), 1 / 2))
         list2_skip_len = int(len(posting_list2) / stride)
         list2_skip_list = [i*stride for i in range(list2_skip_len)]
         list2_skip_list.append(len(posting_list2) - 1)
