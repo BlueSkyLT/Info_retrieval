@@ -5,7 +5,7 @@ from components import *
 parser = argparse.ArgumentParser(
     description='Information Retrieval System')
 parser.add_argument('-d', '--dataset', default='HillaryEmails',
-                    help='Directory to the dataset.')
+                    help='Dataset name.')
 parser.add_argument('-m', '--merge', default='merge_py',
                     help='Merge method. (merge_baseline, merge_linear or merge_linear_skip)')
 

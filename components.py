@@ -13,9 +13,9 @@ class Dataset(object):
     Args:
         dirname (str): path to the dataset directory
     """
-    def __init__(self, dirname):
-        self.dirname = dirname
-        self.dataset = os.path.dirname(dirname) if dirname.endswith('/') else dirname
+    def __init__(self, name):
+        self.name = name
+        self.dirname = os.path.join(os.path.dirname(__file__), name)
         self.stemmer = SnowballStemmer("english")
         self.translator = str.maketrans('', '', string.punctuation)
         self.posting = dict()
@@ -27,9 +27,9 @@ class Dataset(object):
         if os.path.exists(cache_file):
             with open(cache_file, 'r') as f:
                 self.metadata, self.posting = json.load(f)
-            print('Index of {} corpus loaded from {}'.format(self.dataset, cache_file))
+            print('Index of {} corpus loaded from {}'.format(self.name, cache_file))
             return
-        print('Creating index for {} corpus...'.format(self.dataset))
+        print('Creating index for {} corpus...'.format(self.name))
         start_time = time.time()
         files = self.get_files(self.dirname)
         file_token_list = list(list())  # containing token list for each file
@@ -67,8 +67,8 @@ class Dataset(object):
 
         function_name = 'self.' + func
         results = eval(function_name)(posting_lists)
-        results = [Novel(doc_id, self.metadata[doc_id]) if self.dataset == 'Novels'
-                   else Document(doc_id) for doc_id in results]
+        results = [Novel(doc_id + '.txt', self.metadata[doc_id]) if self.name == 'Novels'
+                   else Email(doc_id + '.txt', self.metadata[doc_id]) for doc_id in results]
         time_used = time.time() - start_time
         return results, time_used
 
@@ -246,9 +246,22 @@ class Dataset(object):
         self.metadata[doc_id] = dict()
         tokens = list()
         lines = content.splitlines()
+        for i in range(200 if self.name == 'Novels' else 0, len(lines)):
+            if lines[i] == '' and lines[i-1] != '':
+                words = 0
+                self.metadata[doc_id]['Content'] = str()
+                for j in range(i, len(lines)):
+                    line = lines[j]
+                    if line:
+                        words += len(line.split())
+                        self.metadata[doc_id]['Content'] += line + ''
+                        if words >= 75:
+                            self.metadata[doc_id]['Content'] += '...'
+                            break
+                break
         keys = ['Title', 'Author', 'Release Date', 'Language', 'Character set encoding']
         for i, line in enumerate(lines):
-            if self.dataset == 'Novels':
+            if self.name == 'Novels':
                 if i < 30:
                     for j in range(len(keys)):
                         if keys[j] in line:
@@ -300,37 +313,54 @@ class Dataset(object):
         else:
             self.posting[token] = [doc_id]
 
+    def get(self, docid):
+        """
+        Given docId, return its full text.
+        Args:
+            docid (str): DocId
+        Return:
+            text (str): full document text
+        """
+        file = os.path.join(self.dirname, docid + '.txt')
+        with open(file) as f:
+            text = f.read()
+        return text
 
-class Document(object):
+
+class Email(object):
     """
     Args:
         docid (str): docId of the searched documents.
+        metadata (dict): Content.
     """
-    def __init__(self, docid):
+    def __init__(self, docid, metadata):
         self.docid = docid
+        self.content = metadata.get('Content')
 
     def print(self):
         print('DocId: {}'.format(self.docid))
 
 
-class Novel(Document):
+class Novel(object):
     """
     Args:
         docid (str): docId of the searched documents.
-        metadata (dict): Title, Author, Release Date, Language, Character set encoding.
+        metadata (dict): Title, Author, Release Date, Language, Character set encoding and Content.
     """
     def __init__(self, docid, metadata):
-        super(Novel, self).__init__(docid)
+        self.docid = docid
         self.title = metadata.get('Title')
         self.author = metadata.get('Author')
         self.release_date = metadata.get('Release Date')
         self.language = metadata.get('Language')
         self.encoding = metadata.get('Character set encoding')
+        self.content = metadata.get('Content')
 
     def print(self):
-        super().print()
+        print('DocId: {}'.format(self.docid))
         print('Title: {}'.format(self.title))
         print('Author: {}'.format(self.author))
         print('Release Date: {}'.format(self.release_date))
         print('Language: {}'.format(self.language))
         print('Character set encoding: {}'.format(self.encoding))
+
