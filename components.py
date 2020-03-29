@@ -27,9 +27,9 @@ class Dataset(object):
         if os.path.exists(cache_file):
             with open(cache_file, 'r') as f:
                 self.metadata, self.posting = json.load(f)
-            print('Index of {} corpus loaded from {}'.format(os.path.dirname(self.dirname), cache_file))
+            print('Index of {} corpus loaded from {}'.format(self.dataset, cache_file))
             return
-        print('Creating index for {} corpus...'.format(os.path.dirname(self.dirname)))
+        print('Creating index for {} corpus...'.format(self.dataset))
         start_time = time.time()
         files = self.get_files(self.dirname)
         file_token_list = list(list())  # containing token list for each file
