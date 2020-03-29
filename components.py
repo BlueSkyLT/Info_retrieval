@@ -321,7 +321,7 @@ class Dataset(object):
         Return:
             text (str): full document text
         """
-        file = os.path.join(self.dirname, docid + '.txt')
+        file = os.path.join(self.dirname, docid)
         with open(file) as f:
             text = f.read()
         return text
