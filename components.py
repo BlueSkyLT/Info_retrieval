@@ -15,6 +15,7 @@ class Dataset(object):
     """
     def __init__(self, dirname):
         self.dirname = dirname
+        self.dataset = os.path.dirname(dirname) if dirname.endswith('/') else dirname
         self.stemmer = SnowballStemmer("english")
         self.translator = str.maketrans('', '', string.punctuation)
         self.posting = dict()
@@ -57,16 +58,19 @@ class Dataset(object):
             query (str): input query
             func (str): specify the merge method
         Returns:
-            novels (list): a list that contains Novel Class objects.
+            results (list): a list that contains class instances.
         """
+        start_time = time.time()
         tokens = query.split()
         tokens = [self.stemmer.stem(token.translate(self.translator).lower()) for token in tokens]
         posting_lists = [self.posting[i] if i in self.posting else [] for i in tokens]
 
         function_name = 'self.' + func
-        result = eval(function_name)(posting_lists)
-        novels = [Novel(doc_id, self.metadata[doc_id]) for doc_id in result]
-        return novels
+        results = eval(function_name)(posting_lists)
+        results = [Novel(doc_id, self.metadata[doc_id]) if self.dataset == 'Novels'
+                   else Document(doc_id) for doc_id in results]
+        time_used = time.time() - start_time
+        return results, time_used
 
     @staticmethod
     def merge_py(posting_lists: list):
@@ -244,10 +248,11 @@ class Dataset(object):
         lines = content.splitlines()
         keys = ['Title', 'Author', 'Release Date', 'Language', 'Character set encoding']
         for i, line in enumerate(lines):
-            if i < 30:
-                for j in range(len(keys)):
-                    if keys[j] in line:
-                        self.metadata[doc_id][keys[j]] = line.strip().replace(keys[j]+': ', '')
+            if self.dataset == 'Novels':
+                if i < 30:
+                    for j in range(len(keys)):
+                        if keys[j] in line:
+                            self.metadata[doc_id][keys[j]] = line.strip().replace(keys[j]+': ', '')
             token = line.split()  # default split by whitespace
             tokens.extend(zip(token, len(token) * [doc_id]))
         return tokens
@@ -296,14 +301,26 @@ class Dataset(object):
             self.posting[token] = [doc_id]
 
 
-class Novel(object):
+class Document(object):
     """
     Args:
-        docid (str): docId of the novel
-        metadata (dict): Title, Author, Release Date, Language, Character set encoding
+        docid (str): docId of the searched documents.
+    """
+    def __init__(self, docid):
+        self.docid = docid
+
+    def print(self):
+        print('DocId: {}'.format(self.docid))
+
+
+class Novel(Document):
+    """
+    Args:
+        docid (str): docId of the searched documents.
+        metadata (dict): Title, Author, Release Date, Language, Character set encoding.
     """
     def __init__(self, docid, metadata):
-        self.docid = docid
+        super(Novel, self).__init__(docid)
         self.title = metadata.get('Title')
         self.author = metadata.get('Author')
         self.release_date = metadata.get('Release Date')
@@ -311,7 +328,7 @@ class Novel(object):
         self.encoding = metadata.get('Character set encoding')
 
     def print(self):
-        print('DocId: {}'.format(self.docid))
+        super().print()
         print('Title: {}'.format(self.title))
         print('Author: {}'.format(self.author))
         print('Release Date: {}'.format(self.release_date))
