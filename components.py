@@ -88,8 +88,7 @@ class Dataset(object):
         posting_merged = list(posting_set)
         return posting_merged
 
-    @staticmethod
-    def merge_baseline(posting_lists: list):
+    def merge_baseline(self, posting_lists: list):
         """
         Merge postings lists.
         Args:
@@ -97,20 +96,30 @@ class Dataset(object):
         Returns:
             posting_merged (list): merged postings list.
         """
+        posting_list_init = posting_lists[0]
+        for i in range(1, len(posting_lists)):
+            posting_list_init = self.merge_baseline_one(posting_list_init, posting_lists[i])
+        posting_merged = posting_list_init
+
+        return posting_merged
+
+    @staticmethod
+    def merge_baseline_one(posting_list1: list, posting_list2: list):
+        """
+        Merge postings lists.
+        Args:
+            posting_list1 (list): a list that contains postings lists to be merged.
+            posting_list2 (list): a list that contains postings lists to be merged.
+        Returns:
+            posting_merged (list): merged postings list.
+        """
         posting_merged = list()
-        for list_i in range(len(posting_lists) - 1):
-            list_j = list_i + 1
 
-            posting_lists_i = posting_lists[list_i]
-            posting_lists_j = posting_lists[list_j]
-
-            for element_i in range(len(posting_lists_i)):
-                for element_j in range(len(posting_lists_j)):
-                    if posting_lists_i[element_i] == posting_lists_j[element_j]:
-                        posting_merged.append(posting_lists_i[element_i])
-                        break
-        if len(posting_lists) == 1:
-            posting_merged = posting_lists[0]
+        for element_i in range(len(posting_list1)):
+            for element_j in range(len(posting_list2)):
+                if posting_list1[element_i] == posting_list2[element_j]:
+                    posting_merged.append(posting_list1[element_i])
+                    break
 
         return posting_merged
 
@@ -178,7 +187,7 @@ class Dataset(object):
         list1_len = len(posting_list1)
         list1_pointer = 0
 
-        stride = int(pow(len(posting_list1), 1/2))
+        stride = int(pow(len(posting_list1), 1/2)) + 1
         list1_skip_len = int(len(posting_list1) / stride)
         list1_skip_list = [i*stride for i in range(list1_skip_len)]
         list1_skip_list.append(len(posting_list1)-1)
@@ -187,7 +196,7 @@ class Dataset(object):
         list2_len = len(posting_list2)
         list2_pointer = 0
 
-        stride = int(pow(len(posting_list2), 1 / 2))
+        stride = int(pow(len(posting_list2), 1 / 2)) + 1
         list2_skip_len = int(len(posting_list2) / stride)
         list2_skip_list = [i*stride for i in range(list2_skip_len)]
         list2_skip_list.append(len(posting_list2) - 1)
