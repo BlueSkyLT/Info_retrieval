@@ -18,7 +18,7 @@ Cheng Hao, Guo Lanqing, Lan Tian, Li Ruibo, Yang Ze
 │   └── wsgi.py
 ├── manage.py                         --entrance
 ├── search_web                        --a django app
-│   ├── Info_retrieval                 <font color=red>--search algorithms</font>
+│   ├── Info_retrieval                 --search algorithms
 │   │   ├── components.py
 │   │   └── main.py
 │   ├── spider                        --spider for novel website
