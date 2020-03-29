@@ -18,14 +18,10 @@ Cheng Hao, Guo Lanqing, Lan Tian, Li Ruibo, Yang Ze
 │   └── wsgi.py
 ├── manage.py                         --entrance
 ├── search_web                        --a django app
-│   ├── Info_retrieval
-│   │   ├── HillaryEmails
-│   │   │   └── index_cache.json
-│   │   ├── Novels
-│   │   │   └── index_cache.json
-│   │   ├── components.py
+│   ├── Info_retrieval                 <font color=red>--search algorithms</font>
+│   │   ├── components.py
 │   │   └── main.py
-│   ├── spider
+│   ├── spider                        --spider for novel website
 │   │   ├── Conversion_encoding_to_utf_8.py
 │   │   └── Renumber.py
 │   ├── __init__.py
