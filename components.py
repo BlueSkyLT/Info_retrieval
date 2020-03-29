@@ -247,7 +247,7 @@ class Dataset(object):
         tokens = list()
         lines = content.splitlines()
         for i in range(200 if self.name == 'Novels' else 0, len(lines)):
-            if lines[i] == '' and lines[i-1] != '':
+            if self.name == 'HillaryEmails' or (lines[i] == '' and lines[i-1] != ''):
                 words = 0
                 self.metadata[doc_id]['Content'] = str()
                 for j in range(i, len(lines)):
@@ -339,6 +339,7 @@ class Email(object):
 
     def print(self):
         print('DocId: {}'.format(self.docid))
+        print('Content: {}'.format(self.content))
 
 
 class Novel(object):
@@ -363,4 +364,3 @@ class Novel(object):
         print('Release Date: {}'.format(self.release_date))
         print('Language: {}'.format(self.language))
         print('Character set encoding: {}'.format(self.encoding))
-
