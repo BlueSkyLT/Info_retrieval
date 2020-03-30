@@ -50,6 +50,7 @@ Cheng Hao, Guo Lanqing, Lan Tian, Li Ruibo, Yang Ze
 - python 3.7
 - nltk
 - tqdm
+- 
 
 ## Dataset
 
@@ -61,5 +62,4 @@ Our *Novels* Dataset can be download [here](https://drive.google.com/open?id=1w3
 - `python manage.py runserver` # run server in default port 8000
 - Access Link:[http://127.0.0.1:8000/index](http://127.0.0.1:8000/index)
 
-
-
+It will take about 40 mins to create the index for the Novels and HillaryEmails corpora. Considering such long time it takes, we have already deployed it on the server, feel free to get access via [http://154.8.218.119:10101/index](http://154.8.218.119:10101/index). Note that the physical address of the server is in China. We appreciate your kind patience to wait the connection. Thank you.
