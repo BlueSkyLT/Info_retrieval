@@ -50,7 +50,7 @@ Cheng Hao, Guo Lanqing, Lan Tian, Li Ruibo, Yang Ze
 - python 3.7
 - nltk
 - tqdm
-- 
+- django
 
 ## Dataset
 
